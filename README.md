@@ -1,4 +1,5 @@
 Web spasial untuk monitoring penggunaan Dana Desa
 
 
-# UncleD
+Via Netlify :
+# https://bit.ly/PamanDe
