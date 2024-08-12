@@ -56,26 +56,41 @@
         download: true,
         header: true,
         complete: function(results) {
-            console.log('Data parsed:', results.data); // Tambahkan log untuk memeriksa data yang diterima
             results.data.forEach(function(row) {
                 var lat = parseFloat(row.Latitude);
                 var lon = parseFloat(row.Longitude);
                 var name = row.Nama;
                 var desa = row.Desa;
+                var tahunAnggaran = row['Tahun Anggaran'];
 
                 if (!isNaN(lat) && !isNaN(lon)) { // Periksa jika lat dan lon valid
-                    // Tambahkan marker ke peta
-                    L.marker([lat, lon]).addTo(map)
-                        .bindPopup('<b>' + name + '</b><br>' + desa);
-                } else {
-                    console.warn('Invalid coordinates:', lat, lon); // Log peringatan jika koordinat tidak valid
-                }
-            });
-        },
-        error: function(error) {
-            console.error('Error parsing CSV:', error); // Tambahkan log jika ada kesalahan parsing
-        }
-    });
+                        var marker = L.marker([lat, lon]).bindPopup('<b>' + name + '</b><br>' + desa);
+                        // Tambahkan marker ke cluster group yang sesuai berdasarkan Tahun Anggaran
+                        switch (tahunAnggaran) {
+                            case '2024':
+                                marker.addTo(cluster_group2024);
+                                break;
+                            case '2023':
+                                marker.addTo(cluster_group2023);
+                                break;
+                            case '2022':
+                                marker.addTo(cluster_group2022);
+                                break;
+                            case '2021':
+                                marker.addTo(cluster_group2021);
+                                break;
+                            default:
+                                console.warn('Tahun Anggaran tidak dikenal:', tahunAnggaran);
+                        }
+                    } else {
+                        console.warn('Invalid coordinates:', lat, lon); // Log peringatan jika koordinat tidak valid
+                    }
+                });
+            },
+            error: function(error) {
+                console.error('Error parsing CSV:', error); // Tambahkan log jika ada kesalahan parsing
+            }
+        });
 
         feature_group.addTo(map);
         var title = new L.Control();
@@ -123,6 +138,10 @@
             imperial: false,
             updateWhenIdle: false
         }).addTo(map);
+        cluster_group2024.addTo(map);
+        cluster_group2023.addTo(map);
+        cluster_group2022.addTo(map);
+        cluster_group2021.addTo(map);
     </script>
 </body>
 </html>
