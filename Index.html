@@ -1,27 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paman Dede</title>
     <meta name="description" content="Website Spasial untuk pemantauan pemanfaatan Dana Desa di Kecamatan Krejengan Kabupaten Probolinggo." />
-    <meta name="keywords" content="peta interaktif, webgis indonesia, visualisasi data, google map api, persebaran, Dana Desa, Krejengan" />
-    <link rel="canonical" href="https://maps.spasialkan.com/webgis-persebaran-fasilitas-umum-sebagian-ntb" />
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
-    <link rel="stylesheet" href="CSS/MarkerCluster.css" />
-    <link rel="stylesheet" href="CSS/MarkerCluster.Default.css" />
-    <link rel="stylesheet" type="text/css" href="CSS/own_style.css">
+    <meta name="keywords" content="peta interaktif, webgis indonesia, visualisasi data, google map api, Dana Desa, Krejengan" />
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <!-- MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="CSS/own_style.css?v=1.0">
     <link rel="stylesheet" href="CSS/label.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/k4r573n/leaflet-control-osm-geocoder@master/Control.OSMGeocoder.css" />  
-    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-    <script src="JS/leaflet-hash.js"></script>
-    <script src="JS/label.js"></script>
-    <script src="JS/Autolinker.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/k4r573n/leaflet-control-osm-geocoder@master/Control.OSMGeocoder.js"></script>
-    <script src="JS/leaflet.markercluster.js"></script>
+    
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <!-- MarkerCluster JavaScript -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    
+    <!-- PapaParse for CSV parsing -->
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-    <!-- Global site tag (gtag.js) - Google Analytics -->
+    
+    <!-- Custom JavaScript -->
+    <script src="JS/scripts.js?v=1.2"></script>
+    
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-108940303-1"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -31,117 +40,9 @@
     </script>
 </head>
 <body>
-    <div id="map" style="width: 100%; height: 600px;"></div>
+    <div id="map" style="width: 100%; height: 600px;" aria-label="Peta Pemanfaatan Dana Desa Kecamatan Krejengan"></div>
     <input id="slide" type="range" min="0" max="1" step="0.1" value="1" onchange="updateOpacity(this.value)">
-    <script>
-        var map = L.map('map', {
-            zoomControl: true,
-            maxZoom: 19
-        }).fitBounds([[-7.77793, 113.38048], [-7.81783, 113.45052]]);
-
-        var hash = new L.Hash(map);
-        var additional_attrib = 'created w. <a href="https://github.com/geolicious/qgis2leaf" target ="_blank">qgis2leaf</a> by <a href="http://www.geolicious.de" target ="_blank">Geolicious</a> & contributors<br>';
-        var feature_group = new L.featureGroup([]);
-        var raster_group = new L.LayerGroup([]);
-        var basemap_0 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-            attribution: additional_attrib + '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors,<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-        });    
-        basemap_0.addTo(map);    
-        var layerOrder = [];
-
-        var sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRcuDcfLiekqPQHm_bUpWZ9lsrDW261au1m1raUv8dHGHp1MlYZB50yNyqEEJ-mZmiSeC2Odj4giUcD/pub?gid=0&single=true&output=csv';
-
-        // Ambil data dari Google Sheets menggunakan PapaParse
-        Papa.parse(sheetUrl, {
-        download: true,
-        header: true,
-        complete: function(results) {
-            results.data.forEach(function(row) {
-                var lat = parseFloat(row.Latitude);
-                var lon = parseFloat(row.Longitude);
-                var name = row.Nama;
-                var desa = row.Desa;
-                var tahunAnggaran = row['Tahun Anggaran'];
-
-                if (!isNaN(lat) && !isNaN(lon)) { // Periksa jika lat dan lon valid
-                        var marker = L.marker([lat, lon]).bindPopup('<b>' + name + '</b><br>' + desa);
-                        // Tambahkan marker ke cluster group yang sesuai berdasarkan Tahun Anggaran
-                        switch (tahunAnggaran) {
-                            case '2024':
-                                marker.addTo(cluster_group2024);
-                                break;
-                            case '2023':
-                                marker.addTo(cluster_group2023);
-                                break;
-                            case '2022':
-                                marker.addTo(cluster_group2022);
-                                break;
-                            case '2021':
-                                marker.addTo(cluster_group2021);
-                                break;
-                            default:
-                                console.warn('Tahun Anggaran tidak dikenal:', tahunAnggaran);
-                        }
-                    } else {
-                        console.warn('Invalid coordinates:', lat, lon); // Log peringatan jika koordinat tidak valid
-                    }
-                });
-            },
-            error: function(error) {
-                console.error('Error parsing CSV:', error); // Tambahkan log jika ada kesalahan parsing
-            }
-        });
-
-        feature_group.addTo(map);
-        var title = new L.Control();
-        title.onAdd = function (map) {
-            this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
-            this.update();
-            return this._div;
-        };
-        title.update = function () {
-            this._div.innerHTML = '<h2>PAMAN DeDe</h2>Pantau Manfaat Dana Desa Kecamatan Krejengan';
-        };
-        title.addTo(map);
-
-        var osmGeocoder = new L.Control.OSMGeocoder({
-            collapsed: false,
-            position: 'topright',
-            text: 'Find!',
-        });
-        osmGeocoder.addTo(map);
-
-        var baseMaps = {
-            'Tahun Anggaran': basemap_0
-        };
-
-        var cluster_group2024 = new L.MarkerClusterGroup();
-        var cluster_group2023 = new L.MarkerClusterGroup();
-        var cluster_group2022 = new L.MarkerClusterGroup();
-        var cluster_group2021 = new L.MarkerClusterGroup();
-
-        L.control.layers(baseMaps, {
-            "Tahun Anggaran 2024": cluster_group2024,
-            "Tahun Anggaran 2023": cluster_group2023,
-            "Tahun Anggaran 2022": cluster_group2022,
-            "Tahun Anggaran 2021": cluster_group2021
-        }, {collapsed: false}).addTo(map);
-
-        function updateOpacity(value) {
-            // Implementasi update opacity layer
-        }
-
-        L.control.scale({
-            position: 'bottomleft',
-            maxWidth: 100,
-            metric: true,
-            imperial: false,
-            updateWhenIdle: false
-        }).addTo(map);
-        cluster_group2024.addTo(map);
-        cluster_group2023.addTo(map);
-        cluster_group2022.addTo(map);
-        cluster_group2021.addTo(map);
-    </script>
+    <div id="loading" style="display: none;">Loading...</div>
+    <div id="error-message" style="display: none;"></div>
 </body>
 </html>
