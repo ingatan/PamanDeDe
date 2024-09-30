@@ -12,27 +12,6 @@ export async function fetchConfig() {
   }
 }
 
-function detectDelimiter(csvData) {
-  const delimiters = [',', ';', '\t', '|'];
-  const counts = delimiters.map(delimiter => 
-    csvData.split('\n')[0].split(delimiter).length - 1
-  );
-  const maxCount = Math.max(...counts);
-  return delimiters[counts.indexOf(maxCount)];
-}
-
-function manualCSVParse(csvData, delimiter) {
-  const lines = csvData.split('\n');
-  const headers = lines[0].split(delimiter);
-  return lines.slice(1).map(line => {
-    const values = line.split(delimiter);
-    return headers.reduce((obj, header, index) => {
-      obj[header.trim()] = values[index] ? values[index].trim() : '';
-      return obj;
-    }, {});
-  });
-}
-
 export async function fetchSheetData() {
   try {
     const response = await fetch('/api/sheet-data');
@@ -41,45 +20,23 @@ export async function fetchSheetData() {
     }
     let csvData = await response.text();
 
-    // Remove BOM if present
-    csvData = csvData.replace(/^\uFEFF/, '');
+    csvData = csvData.replace(/^\uFEFF/, '').replace(/^"|"$/g, '');
+    const lines = csvData.split('\\r\\n');
+    const headers = lines[0].split(',').map(header => header.trim());
+    const parsedData = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',');
+      if (values.length === headers.length) {
+        const row = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] ? values[index].trim() : '';
+        });
+        parsedData.push(row);
+      }
+    }
 
-    // Normalize line breaks
-    csvData = csvData.replace(/\r\n/g, '\n');
-
-    console.log('First few lines of CSV:', csvData.split('\n').slice(0, 5).join('\n'));
-
-    // Detect delimiter
-    const delimiter = detectDelimiter(csvData);
-    console.log('Detected delimiter:', delimiter);
-
-    return new Promise((resolve, reject) => {
-      Papa.parse(csvData, {
-        header: true,
-        delimiter: delimiter,
-        complete: (results) => {
-          if (results.errors.length > 0) {
-            console.error('CSV parsing errors:', results.errors);
-          }
-          if (results.data.length === 0) {
-            console.warn('Papa Parse returned empty data. Attempting manual parse.');
-            const manuallyParsedData = manualCSVParse(csvData, delimiter);
-            console.log('Manually parsed data sample:', manuallyParsedData.slice(0, 5));
-            resolve(manuallyParsedData);
-          } else {
-            console.log('Parsed data sample:', results.data.slice(0, 5));
-            resolve(results.data);
-          }
-        },
-        error: (error) => {
-          console.error('Papa Parse error:', error);
-          console.warn('Attempting manual parse due to Papa Parse error.');
-          const manuallyParsedData = manualCSVParse(csvData, delimiter);
-          console.log('Manually parsed data sample:', manuallyParsedData.slice(0, 5));
-          resolve(manuallyParsedData);
-        }
-      });
-    });
+    console.log('Parsed data:', parsedData);
+    return parsedData;
   } catch (error) {
     console.error('Error fetching sheet data:', error);
     throw error;

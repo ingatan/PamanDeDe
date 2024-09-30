@@ -21,11 +21,10 @@ app.use(helmet({
     },
   },
 }));
-app.use(morgan('combined')); // Logging
+app.use(morgan('combined'));
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from 'public' directory
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.get('/', (req, res) => {

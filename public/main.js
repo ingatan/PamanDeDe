@@ -14,15 +14,16 @@ async function initializeApp() {
     map = await initializeMap(config.MAP_BOUNDS);
     
     const data = await fetchSheetData();
-    if (!Array.isArray(data)) {
-      throw new Error('Fetched data is not an array');
+    
+    if (data && data.length > 0) {
+      processData(data, map);
+    } else {
+      console.error('No data to process');
     }
     
-    processData(data, map);
     setupControls(map);
     await loadVillageBoundaries(window.desaIds);
 
-    // Setup UI controls
     setupUIControls();
 
   } catch (error) {
@@ -50,7 +51,6 @@ function setupUIControls() {
 }
 
 function filterDataByYear(year) {
-  // Implement filtering logic here
   console.log(`Filtering data for year: ${year}`);
 }
 

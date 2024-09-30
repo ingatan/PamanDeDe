@@ -12,13 +12,14 @@ export function initializeMap(mapBounds) {
     map.fitBounds(mapBounds);
   } else {
     console.warn('Invalid map bounds, using default view');
-    map.setView([-7.7956, 113.4148], 12);
+    map.setView([-7.7956, 113.4148], 13);
   }
 
   return map;
 }
 
 export function processData(data, map) {
+  console.log('Processing data:', data);
   if (!map) {
     console.error('Map object is undefined in processData');
     return;
@@ -26,9 +27,20 @@ export function processData(data, map) {
   data.forEach(item => {
     const lat = parseFloat(item.Latitude);
     const lng = parseFloat(item.Longitude);
+    console.log(`Processing item: ${item.Nama}, Lat: ${lat}, Lng: ${lng}`);
     if (!isNaN(lat) && !isNaN(lng)) {
-      L.marker([lat, lng]).addTo(map)
-        .bindPopup(`<b>${item.Nama}</b><br>Desa: ${item.Desa}<br>Tahun: ${item.TahunAnggaran}`);
+      const marker = L.marker([lat, lng], {
+        icon: L.icon({
+          iconUrl: './E0A9.png',
+          iconSize: [25, 25],
+          iconAnchor: [10, 10],
+          popupAnchor: [1, -34],
+        })
+      }).addTo(map);
+      
+      marker.bindPopup(`<b>${item.Nama}</b><br>Desa: ${item.Desa}<br>Tahun: ${item.TahunAnggaran}`);
+    } else {
+      console.warn(`Invalid coordinates for item: ${item.Nama}`);
     }
   });
 }
@@ -60,9 +72,11 @@ export async function loadVillageBoundaries(desaIds) {
     villages.forEach((village) => {
       L.geoJSON(village, {
         style: {
-          color: '#ff7800',
-          weight: 2,
-          opacity: 0.65
+          color: '#808080',
+          weight: 1,
+          opacity: 0.5,
+          fill: false,
+          fillOpacity: 0
         }
       }).addTo(villageLayerGroup);
     });
