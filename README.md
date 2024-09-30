@@ -8,6 +8,7 @@ leafletJs untuk tampilan peta<br>
 NodeJs untuk backend
 
 > Every app is just an interface for a database
+
 Bagi pengguna yang telah terbiasa dengan excell sebagai alat kerja, app ini tampak sebagai bonus
 
 
