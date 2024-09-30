@@ -9,7 +9,6 @@ const morgan = require('morgan');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -17,7 +16,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", 'unpkg.com', 'cdnjs.cloudflare.com'],
       styleSrc: ["'self'", "'unsafe-inline'", 'unpkg.com', 'cdnjs.cloudflare.com'],
       imgSrc: ["'self'", 'data:', 'blob:', '*.tile.openstreetmap.org'],
-      connectSrc: ["'self'", 'api.example.com'], // Replace with your actual API domain
+      connectSrc: ["'self'", 'api.example.com'], 
     },
   },
 }));
@@ -28,7 +27,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
 app.get('/api/sheet-data', async (req, res) => {
@@ -37,7 +36,7 @@ app.get('/api/sheet-data', async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching sheet data:', error);
-    res.status(500).json({ error: 'Failed to fetch sheet data', details: error.message });
+    res.status(500).json({ error: 'Gagal sambungkan Spreadsheet', details: error.message });
   }
 });
 
@@ -50,20 +49,17 @@ app.get('/api/config', (req, res) => {
     };
     res.json(config);
   } catch (error) {
-    console.error('Error sending config:', error);
-    res.status(500).json({ error: 'Failed to send config', details: error.message });
+    res.status(500).json({ error: 'Gagal Kirim config', details: error.message });
   }
 });
 
-// Serve GeoJSON files
 app.use('/api/geojson', express.static(path.join(__dirname, 'geojson')));
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('Something broke!');
+  res.status(500).send('Ada yang salah pada Middleware!');
 });
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server berjalan di http://localhost:${port}`);
 });
