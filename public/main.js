@@ -1,7 +1,9 @@
-import { fetchConfig, fetchSheetData } from './data.js';
-import { initializeMap, processData, setupControls, loadVillageBoundaries, toggleVillageBoundaries } from './map.js';
+import { fetchConfig, fetchSheetData, fetchPlaceData } from './data.js';
+import { initializeMap, processData, setupControls, loadVillageBoundaries, toggleVillageBoundaries, clearMarkers, addPlaceMarkers } from './map.js';
 
 let map;
+let originalData;
+let placeData;
 
 async function initializeApp() {
   try {
@@ -13,18 +15,24 @@ async function initializeApp() {
 
     map = await initializeMap(config.MAP_BOUNDS);
     
-    const data = await fetchSheetData();
+    originalData = await fetchSheetData();
+    placeData = await fetchPlaceData();
     
-    if (data && data.length > 0) {
-      processData(data, map);
+    if (originalData && originalData.length > 0) {
+      processData(originalData, map);
+      setupYearFilter(originalData);
     } else {
       console.error('No data to process');
     }
     
+    if (placeData && placeData.length > 0) {
+      addPlaceMarkers(placeData, map);
+    } else {
+      console.error('No place data to process');
+    }
+    
     setupControls(map);
     await loadVillageBoundaries(window.desaIds);
-
-    setupUIControls();
 
   } catch (error) {
     console.error('Error initializing app:', error);
@@ -32,26 +40,39 @@ async function initializeApp() {
   }
 }
 
-function setupUIControls() {
-  const yearSelect = document.getElementById('year-select');
-  if (yearSelect) {
-    window.YEARS.forEach(year => {
-      const option = document.createElement('option');
-      option.value = year;
-      option.textContent = year;
-      yearSelect.appendChild(option);
+function setupYearFilter(data) {
+  const years = [...new Set(data.map(item => item.TahunAnggaran))].sort();
+  const yearCheckboxes = document.getElementById('year-checkboxes');
+  
+  if (yearCheckboxes) {
+    years.forEach(year => {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = year;
+      checkbox.checked = true;
+      checkbox.addEventListener('change', filterDataByYear);
+      
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(` ${year}`));
+      yearCheckboxes.appendChild(label);
     });
-    yearSelect.addEventListener('change', (e) => filterDataByYear(e.target.value));
-  }
-
-  const boundaryToggle = document.getElementById('boundary-toggle');
-  if (boundaryToggle) {
-    boundaryToggle.addEventListener('change', (e) => toggleVillageBoundaries(e.target.checked));
+    console.log('Year filter setup complete');
+  } else {
+    console.error('Year checkboxes container not found');
   }
 }
 
-function filterDataByYear(year) {
-  console.log(`Filtering data for year: ${year}`);
+function filterDataByYear() {
+  clearMarkers();
+  
+  const checkedYears = Array.from(document.querySelectorAll('#year-checkboxes input:checked'))
+    .map(checkbox => checkbox.value);
+  
+  const filteredData = originalData.filter(item => checkedYears.includes(item.TahunAnggaran));
+  
+  processData(filteredData, map);
+  addPlaceMarkers(placeData, map);
 }
 
 function showErrorMessage(message) {

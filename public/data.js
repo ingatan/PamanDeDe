@@ -42,3 +42,17 @@ export async function fetchSheetData() {
     throw error;
   }
 }
+
+export async function fetchPlaceData() {
+  try {
+    const response = await fetch('/api/place-data');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching place data:', error);
+    throw error;
+  }
+}

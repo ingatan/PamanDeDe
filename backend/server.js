@@ -5,6 +5,7 @@ const axios = require('axios');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const xlsx = require('xlsx');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -50,6 +51,19 @@ app.get('/api/config', (req, res) => {
     res.json(config);
   } catch (error) {
     res.status(500).json({ error: 'Gagal Kirim config', details: error.message });
+  }
+});
+
+app.get('/api/place-data', (req, res) => {
+  try {
+    const workbook = xlsx.readFile(path.join(__dirname, '../public/place.xlsx'));
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(worksheet);
+    res.json(data);
+  } catch (error) {
+    console.error('Error reading Excel file:', error);
+    res.status(500).json({ error: 'Gagal membaca file Excel', details: error.message });
   }
 });
 
