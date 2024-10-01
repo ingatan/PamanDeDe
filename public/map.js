@@ -115,7 +115,7 @@ function getIconUrlByCode(code) {
     case 6:
       return './png/kua.png';
     case 7:
-      return './png/garpu.png';    
+      return './png/garpu.png';  
     default:
       return './default.png';
   }
@@ -148,7 +148,7 @@ export async function loadVillageBoundaries(desaIds) {
         villages.forEach((village) => {
             L.geoJSON(village, {
                 style: {
-                    color: '#808080',
+                    color: '#FF69B4',
                     weight: 1,
                     opacity: 0.5,
                     fill: false,

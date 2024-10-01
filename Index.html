@@ -14,19 +14,32 @@
 <body class="option-1">
     <div id="map-container">
         <div id="map-title">
-            <img src="/png/logo.png" alt="Logo" class="title-logo">
+            <img src="/png/logo.png" class="title-logo" alt="Logo">
             <div class="title-content">
                 <h1>PAMAN DeDe</h1>
                 <p class="subtitle">Pantau Manfaat Dana Desa<br>Kecamatan Krejengan</p>
             </div>
         </div>
+    
         <div id="filter-container">
-            <p>Pilih Tahun Anggaran:</p>
-            <div id="year-checkboxes">
+            <div id="year-filter">
+                <p>Pilih Tahun Anggaran:</p>
+                <div id="year-checkboxes">
+                    <!-- Year checkboxes will be dynamically inserted here -->
+                </div>
+            </div>
+            <div id="village-filter">
+                <p>Pilih Desa:</p>
+                <select id="village-select">
+                    <option value="">-- Pilih Desa --</option>
+                    <!-- Village options will be dynamically inserted here -->
+                </select>
             </div>
         </div>
+    
         <div id="map" role="application" aria-label="Pantau Manfaat Dana Desa"></div>
     </div>
+    
     <div id="error-message" role="alert"></div>
     <script type="module" src="/main.js"></script>
 </body>

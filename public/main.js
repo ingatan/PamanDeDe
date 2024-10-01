@@ -4,6 +4,7 @@ import { initializeMap, processData, setupControls, loadVillageBoundaries, toggl
 let map;
 let originalData;
 let placeData;
+let villages = [];
 
 async function initializeApp() {
   try {
@@ -20,7 +21,7 @@ async function initializeApp() {
     
     if (originalData && originalData.length > 0) {
       processData(originalData, map);
-      setupYearFilter(originalData);
+      setupFilters(originalData);
     } else {
       console.error('No data to process');
     }
@@ -40,6 +41,11 @@ async function initializeApp() {
   }
 }
 
+function setupFilters(data) {
+  setupYearFilter(data);
+  setupVillageFilter(data);
+}
+
 function setupYearFilter(data) {
   const years = [...new Set(data.map(item => item.TahunAnggaran))].sort();
   const yearCheckboxes = document.getElementById('year-checkboxes');
@@ -51,25 +57,47 @@ function setupYearFilter(data) {
       checkbox.type = 'checkbox';
       checkbox.value = year;
       checkbox.checked = true;
-      checkbox.addEventListener('change', filterDataByYear);
+      checkbox.addEventListener('change', applyFilters);
       
       label.appendChild(checkbox);
       label.appendChild(document.createTextNode(` ${year}`));
       yearCheckboxes.appendChild(label);
     });
-    console.log('Year filter setup complete');
   } else {
     console.error('Year checkboxes container not found');
   }
 }
 
-function filterDataByYear() {
+function setupVillageFilter(data) {
+  villages = [...new Set(data.map(item => item.Desa))].sort();
+  const villageSelect = document.getElementById('village-select');
+  
+  if (villageSelect) {
+    villages.forEach(village => {
+      const option = document.createElement('option');
+      option.value = village;
+      option.textContent = village;
+      option.selected = true;
+      villageSelect.appendChild(option);
+    });
+    villageSelect.addEventListener('change', applyFilters);
+  } else {
+    console.error('Village select element not found');
+  }
+}
+
+function applyFilters() {
   clearMarkers();
   
   const checkedYears = Array.from(document.querySelectorAll('#year-checkboxes input:checked'))
     .map(checkbox => checkbox.value);
   
-  const filteredData = originalData.filter(item => checkedYears.includes(item.TahunAnggaran));
+  const selectedVillages = Array.from(document.getElementById('village-select').selectedOptions)
+    .map(option => option.value);
+  
+  const filteredData = originalData.filter(item => 
+    checkedYears.includes(item.TahunAnggaran) && selectedVillages.includes(item.Desa)
+  );
   
   processData(filteredData, map);
   addPlaceMarkers(placeData, map);
