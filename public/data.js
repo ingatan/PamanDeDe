@@ -50,6 +50,9 @@ export async function fetchPlaceData() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
+
+    // tambahkan logika parsing jika salah format 
+
     return data;
   } catch (error) {
     console.error('Error fetching place data:', error);

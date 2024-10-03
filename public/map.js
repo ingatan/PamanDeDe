@@ -1,3 +1,4 @@
+import { villageMapping } from './main.js';
 let map;
 const villageLayerGroup = L.layerGroup();
 let markers = [];
@@ -34,7 +35,6 @@ export function processData(data, map) {
     data.forEach(item => {
         const lat = parseFloat(item.Latitude);
         const lng = parseFloat(item.Longitude);
-        console.log(`Processing item: ${item.Nama}, Lat: ${lat}, Lng: ${lng}`);
         if (!isNaN(lat) && !isNaN(lng)) {
             const marker = L.marker([lat, lng], {
                 icon: L.icon({
@@ -45,7 +45,17 @@ export function processData(data, map) {
                 })
             }).addTo(map);
             
-            marker.bindPopup(`<b>${item.Nama}</b><br>Desa: ${item.Desa}<br>Tahun: ${item.TahunAnggaran}`);
+            const popupContent = `
+                <div class="custom-popup">
+                    <h3>${item.Nama}</h3>
+                    <p><strong>Desa:</strong> ${item.Desa}</p>
+                    <p><strong>Tahun:</strong> ${item.TahunAnggaran}</p>
+                    ${item.Keterangan ? `<p>${item.Keterangan}</p>` : ''}
+                    ${item.ImageUrl ? `<img src="${item.ImageUrl}" alt="${item.Nama}">` : ''}
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
             addHoverEffect(marker);
             markers.push(marker);
         } else {
@@ -76,7 +86,15 @@ export function addPlaceMarkers(data, map) {
                 })
             }).addTo(map);
             
-            marker.bindPopup(`<b>${item.Keterangan}</b>`);
+            const popupContent = `
+                <div class="custom-popup">
+                    <h3>${item.Keterangan}</h3>
+                    ${item.Deskripsi ? `<p>${item.Deskripsi}</p>` : ''}
+                    ${item.ImageUrl ? `<img src="${item.ImageUrl}" alt="${item.Keterangan}">` : ''}
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
             addHoverEffect(marker);
             placeMarkers.push(marker);
         } else {
@@ -129,6 +147,8 @@ export function setupControls(map) {
     L.control.zoom({position: 'topright'}).addTo(map);
 }
 
+let villageGeoJSONs = {};
+
 export async function loadVillageBoundaries(desaIds) {
     if (!map) {
         console.error('Map object is undefined in loadVillageBoundaries');
@@ -140,13 +160,14 @@ export async function loadVillageBoundaries(desaIds) {
             if (!response.ok) {
                 throw new Error(`Failed to fetch GeoJSON for ${desaId}: ${response.status}`);
             }
-            return await response.json();
+            return { id: desaId, data: await response.json() };
         });
 
         const villages = await Promise.all(villagePromises);
         villageLayerGroup.clearLayers();
         villages.forEach((village) => {
-            L.geoJSON(village, {
+            villageGeoJSONs[village.id] = village.data;
+            L.geoJSON(village.data, {
                 style: {
                     color: '#FF69B4',
                     weight: 1,
@@ -167,5 +188,28 @@ export function toggleVillageBoundaries(show) {
         map.addLayer(villageLayerGroup);
     } else {
         map.removeLayer(villageLayerGroup);
+    }
+}
+
+export function focusOnVillage(villageName) {
+    console.log('focusOnVillage called with:', villageName);
+    console.log('Available villageGeoJSONs:', Object.keys(villageGeoJSONs));
+    
+    const villageCode = villageMapping[villageName];
+    console.log('Village code:', villageCode);
+    
+    if (!villageCode) {
+        console.warn(`Village code not found for: ${villageName}`);
+        return;
+    }
+    
+    const villageGeoJSON = villageGeoJSONs[villageCode];
+    if (villageGeoJSON) {
+        console.log('GeoJSON found for village:', villageName);
+        const bounds = L.geoJSON(villageGeoJSON).getBounds();
+        console.log('Bounds:', bounds);
+        map.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+        console.warn(`GeoJSON data not found for village code: ${villageCode}`);
     }
 }

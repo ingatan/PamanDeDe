@@ -193,3 +193,37 @@
     color: #2a70c2;
     border-bottom: none;
 }
+
+.custom-popup .leaflet-popup-content-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 8px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.2);
+  }
+  
+  .custom-popup .leaflet-popup-content {
+    margin: 13px 19px;
+    line-height: 1.4;
+  }
+  
+  .custom-popup .leaflet-popup-tip {
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  .custom-popup img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+    border-radius: 4px;
+  }
+  
+  .custom-popup h3 {
+    margin: 0 0 10px 0;
+    color: #2a70c2;
+  }
+  
+  .custom-popup p {
+    margin: 0 0 5px 0;
+  }

@@ -1,10 +1,29 @@
 import { fetchConfig, fetchSheetData, fetchPlaceData } from './data.js';
-import { initializeMap, processData, setupControls, loadVillageBoundaries, toggleVillageBoundaries, clearMarkers, addPlaceMarkers } from './map.js';
+import { initializeMap, processData, setupControls, loadVillageBoundaries, toggleVillageBoundaries, clearMarkers, addPlaceMarkers, focusOnVillage } from './map.js';
 
 let map;
 let originalData;
 let placeData;
 let villages = [];
+const villageMapping = {
+  "Temenggungan": "35.13.15.2001",
+  "Patemon": "35.13.15.2002",
+  "Jatiurip": "35.13.15.2003",
+  "Opo Opo": "35.13.15.2004",
+  "Kamalkuning": "35.13.15.2005",
+  "Tanjungsari": "35.13.15.2006",
+  "Krejengan": "35.13.15.2007",
+  "Sentong": "35.13.15.2008",
+  "Sumberkatimoho": "35.13.15.2009",
+  "Karangren": "35.13.15.2010",
+  "Rawan": "35.13.15.2011",
+  "Seboro": "35.13.15.2012",
+  "Kedungcaluk": "35.13.15.2013",
+  "Widoro": "35.13.15.2014",
+  "Gebangan": "35.13.15.2015",
+  "Dawuhan": "35.13.15.2016",
+  "Sokaan": "35.13.15.2017"
+};
 
 async function initializeApp() {
   try {
@@ -64,25 +83,35 @@ function setupYearFilter(data) {
       yearCheckboxes.appendChild(label);
     });
   } else {
-    console.error('Year checkboxes container not found');
+    console.error('Tahun Anggaran Belum Tersedia');
   }
 }
 
 function setupVillageFilter(data) {
-  villages = [...new Set(data.map(item => item.Desa))].sort();
+  const dataVillages = [...new Set(data.map(item => item.Desa))];
+  const allVillages = [...new Set([...Object.keys(villageMapping), ...dataVillages])].sort();
+  console.log('All available villages:', allVillages);
+  
   const villageSelect = document.getElementById('village-select');
   
   if (villageSelect) {
-    villages.forEach(village => {
+    villageSelect.innerHTML = '';
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Pilih Desa';
+    villageSelect.appendChild(defaultOption);
+
+    allVillages.forEach(village => {
       const option = document.createElement('option');
       option.value = village;
       option.textContent = village;
-      option.selected = true;
       villageSelect.appendChild(option);
     });
+    
     villageSelect.addEventListener('change', applyFilters);
   } else {
-    console.error('Village select element not found');
+    console.error('Tidak ada Desa dimaksud');
   }
 }
 
@@ -92,15 +121,21 @@ function applyFilters() {
   const checkedYears = Array.from(document.querySelectorAll('#year-checkboxes input:checked'))
     .map(checkbox => checkbox.value);
   
-  const selectedVillages = Array.from(document.getElementById('village-select').selectedOptions)
-    .map(option => option.value);
+  const selectedVillage = document.getElementById('village-select').value;
   
   const filteredData = originalData.filter(item => 
-    checkedYears.includes(item.TahunAnggaran) && selectedVillages.includes(item.Desa)
+    checkedYears.includes(item.TahunAnggaran) && 
+    (selectedVillage === '' || item.Desa === selectedVillage)
   );
   
   processData(filteredData, map);
   addPlaceMarkers(placeData, map);
+
+  if (selectedVillage !== '') {
+    focusOnVillage(selectedVillage);
+  } else {
+    map.fitBounds(window.MAP_BOUNDS);
+  }
 }
 
 function showErrorMessage(message) {
@@ -112,3 +147,4 @@ function showErrorMessage(message) {
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
+export { villageMapping };
