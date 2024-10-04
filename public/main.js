@@ -1,10 +1,9 @@
 import { fetchConfig, fetchSheetData, fetchPlaceData } from './data.js';
-import { initializeMap, processData, setupControls, loadVillageBoundaries, toggleVillageBoundaries, clearMarkers, addPlaceMarkers, focusOnVillage } from './map.js';
+import { initializeMap, processData, setupControls, loadVillageBoundaries, clearMarkers, addPlaceMarkers, focusOnVillage, searchLocations } from './map.js';
 
 let map;
 let originalData;
 let placeData;
-let villages = [];
 const villageMapping = {
   "Temenggungan": "35.13.15.2001",
   "Patemon": "35.13.15.2002",
@@ -42,21 +41,22 @@ async function initializeApp() {
       processData(originalData, map);
       setupFilters(originalData);
     } else {
-      console.error('No data to process');
+      throw new Error('No data to process');
     }
     
     if (placeData && placeData.length > 0) {
       addPlaceMarkers(placeData, map);
     } else {
-      console.error('No place data to process');
+      console.warn('No place data to process');
     }
     
     setupControls(map);
     await loadVillageBoundaries(window.desaIds);
+    setupSearch();
 
   } catch (error) {
     console.error('Error initializing app:', error);
-    showErrorMessage(`Failed to load map data: ${error.message}. Please try again later.`);
+    showErrorMessage(`Gagal memuat data: ${error.message}. Coba lagi.`);
   }
 }
 
@@ -90,7 +90,6 @@ function setupYearFilter(data) {
 function setupVillageFilter(data) {
   const dataVillages = [...new Set(data.map(item => item.Desa))];
   const allVillages = [...new Set([...Object.keys(villageMapping), ...dataVillages])].sort();
-  console.log('All available villages:', allVillages);
   
   const villageSelect = document.getElementById('village-select');
   
@@ -138,11 +137,39 @@ function applyFilters() {
   }
 }
 
+function setupSearch() {
+  const searchInput = document.getElementById('search-input');
+  const searchButton = document.getElementById('search-button');
+
+  searchButton.addEventListener('click', () => performSearch());
+  searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      performSearch();
+    }
+  });
+}
+
+function performSearch() {
+  const searchTerm = document.getElementById('search-input').value.trim();
+  if (searchTerm) {
+    const results = searchLocations(searchTerm, originalData, placeData);
+    if (results.length > 0) {
+      const firstResult = results[0];
+      map.setView([firstResult.lat, firstResult.lng], 15);
+    } else {
+      showErrorMessage('No results found for your search.');
+    }
+  }
+}
+
 function showErrorMessage(message) {
   const errorElement = document.getElementById('error-message');
   if (errorElement) {
     errorElement.textContent = message;
     errorElement.style.display = 'block';
+    setTimeout(() => {
+      errorElement.style.display = 'none';
+    }, 5000); 
   }
 }
 

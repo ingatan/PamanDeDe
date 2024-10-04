@@ -1,4 +1,3 @@
-/* Base styles with improved color contrast and mobile-first approach */
 #map-container {
     position: relative;
     width: 100%;
@@ -12,8 +11,9 @@
 
 #map-title {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1000;
     background-color: rgba(240, 248, 255, 0.95);
     padding: 10px;
@@ -22,14 +22,15 @@
     border: 2px solid #2a70c2;
     display: flex;
     align-items: center;
-    max-width: calc(100% - 20px);
+    max-width: 80%;
+    width: fit-content;
 }
 
 #map-title .title-content {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
+    align-items: center;
+    margin-left: 10px;
 }
 
 #map-title h1 {
@@ -37,27 +38,29 @@
     font-weight: bold;
     color: #1a1a1a;
     margin: 0;
-    text-align: left;
+    text-align: center; 
     border-bottom: 3px solid #2a70c2;
     padding-bottom: 5px;
+    width: 100%;
 }
 
 #map-title .subtitle {
     font-size: 12px;
+    font-weight: bold;
     color: #333;
     margin: 5px 0 0;
-    text-align: left;
+    text-align: center;
     line-height: 1.4;
 }
 
 .title-logo {
     height: 35px;
-    margin-right: 10px;
+    margin-bottom: 0;
 }
 
 #filter-container {
     position: absolute;
-    top: 120px; /* sesuai tinggi map title */
+    top: 60px;
     left: 10px;
     z-index: 1000;
     background-color: #f0f8ff;
@@ -80,7 +83,6 @@
     width: 100%;
 }
 
-/* Year filter styles */
 #year-checkboxes {
     display: flex;
     flex-direction: column;
@@ -97,7 +99,6 @@
     margin-right: 8px;
 }
 
-/* dropdown styles */
 #village-select {
     width: 100%;
     padding: 8px;
@@ -120,28 +121,125 @@
     border-color: #2a70c2;
     box-shadow: 0 0 0 2px rgba(42, 112, 194, 0.2);
 }
+ 
+  #map-legend {
+    position: absolute;
+    top: 80px;
+    right: 10px;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    max-width: 200px;
+}
+  
+#map-legend h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: bold;
+}
 
-/* Tablet styles */
-@media screen and (min-width: 768px) {
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+  
+  .legend-color {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    border: 1px solid #000;
+  }
+  
+  .legend-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#search-container {
+    position: absolute;
+    top: 10px; 
+    left: 10px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 5px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.leaflet-control-zoom {
+    margin-top: 20px !important;
+}
+  
+  #search-input {
+    width: 200px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px 0 0 4px;
+    font-size: 14px;
+  }
+  
+  #search-button {
+    padding: 8px 12px;
+    background-color: #2a70c2;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  #search-button:hover {
+    background-color: #215fa3;
+  }
+  
+  #error-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff6b6b;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    z-index: 2000;
+    display: none;
+  }
+
+  @media screen and (max-width: 768px) {
     #map-title {
-        max-width: 300px;
+        max-width: 90%;
+        font-size: 14px;
     }
 
-    #map-title h1 {
-        font-size: 20px;
+    #search-container, #filter-container, #map-legend {
+        max-width: calc(100% - 20px);
+        right: 10px;
+        left: 10px;
     }
 
-    .title-logo {
-        height: 40px;
+    #search-container {
+        top: 20px;
     }
 
     #filter-container {
         top: 130px; 
-        max-width: 280px;
+    }
+
+    #map-legend {
+        top: 280px;
     }
 }
 
-/* Desktop styles */
 @media screen and (min-width: 1024px) {
     #map-title h1 {
         font-size: 22px;
@@ -151,8 +249,12 @@
         height: 45px;
     }
 
+    #search-container {
+        top: 70px;
+    }
+
     #filter-container {
-        top: 140px; 
+        top: 120px; 
         max-width: 300px;
     }
 }

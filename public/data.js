@@ -35,7 +35,6 @@ export async function fetchSheetData() {
       }
     }
 
-    console.log('Parsed data:', parsedData);
     return parsedData;
   } catch (error) {
     console.error('Error fetching sheet data:', error);

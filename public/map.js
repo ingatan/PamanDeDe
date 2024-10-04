@@ -3,23 +3,31 @@ let map;
 const villageLayerGroup = L.layerGroup();
 let markers = [];
 let placeMarkers = [];
+let villageGeoJSONs = {};
 
 export function initializeMap(mapBounds) {
-    map = L.map('map', {
-        zoomControl: false 
-    });
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+  map = L.map('map', {
+      zoomControl: false 
+  });
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
 
-    if (Array.isArray(mapBounds) && mapBounds.length === 2) {
-        map.fitBounds(mapBounds);
-    } else {
-        console.warn('Invalid map bounds, using default view');
-        map.setView([-7.7956, 113.4148], 13);
-    }
-    return map;
+  const adjustedBounds = [
+    [-7.831990773460, 113.36985647783], 
+    [-7.7644146298733, 113.45710425933]  
+  ];
+
+  map.fitBounds(adjustedBounds);
+
+  L.control.zoom({
+      position: 'topright'
+  }).addTo(map);
+
+  addLegend(map);
+
+  return map;
 }
 
 export function clearMarkers() {
@@ -140,14 +148,11 @@ function getIconUrlByCode(code) {
 }
 
 export function setupControls(map) {
-    if (!map) {
-        console.error('Map object is undefined in setupControls');
-        return;
-    }
-    L.control.zoom({position: 'topright'}).addTo(map);
+  if (!map) {
+      console.error('Map object is undefined in setupControls');
+      return;
+  }
 }
-
-let villageGeoJSONs = {};
 
 export async function loadVillageBoundaries(desaIds) {
     if (!map) {
@@ -183,33 +188,68 @@ export async function loadVillageBoundaries(desaIds) {
     }
 }
 
-export function toggleVillageBoundaries(show) {
-    if (show) {
-        map.addLayer(villageLayerGroup);
-    } else {
-        map.removeLayer(villageLayerGroup);
-    }
-}
-
+export function searchLocations(searchTerm, projectData, placeData) {
+    const results = [];
+    
+    projectData.forEach(item => {
+      if (item.Nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.Desa.toLowerCase().includes(searchTerm.toLowerCase())) {
+        results.push({
+          lat: parseFloat(item.Latitude),
+          lng: parseFloat(item.Longitude),
+          name: item.Nama,
+          type: 'project'
+        });
+      }
+    });
+    
+    placeData.forEach(item => {
+      if (item.Keterangan.toLowerCase().includes(searchTerm.toLowerCase())) {
+        results.push({
+          lat: parseFloat(item.Latitude),
+          lng: parseFloat(item.Longitude),
+          name: item.Keterangan,
+          type: 'place'
+        });
+      }
+    });
+    
+    return results;
+  }
+  
 export function focusOnVillage(villageName) {
-    console.log('focusOnVillage called with:', villageName);
-    console.log('Available villageGeoJSONs:', Object.keys(villageGeoJSONs));
+  const villageCode = villageMapping[villageName];
+  if (!villageCode) {
+    console.warn(`Village code not found for: ${villageName}`);
+    return;
+  }
     
-    const villageCode = villageMapping[villageName];
-    console.log('Village code:', villageCode);
-    
-    if (!villageCode) {
-        console.warn(`Village code not found for: ${villageName}`);
-        return;
-    }
-    
-    const villageGeoJSON = villageGeoJSONs[villageCode];
-    if (villageGeoJSON) {
-        console.log('GeoJSON found for village:', villageName);
-        const bounds = L.geoJSON(villageGeoJSON).getBounds();
-        console.log('Bounds:', bounds);
-        map.fitBounds(bounds, { padding: [50, 50] });
-    } else {
-        console.warn(`GeoJSON data not found for village code: ${villageCode}`);
-    }
+  const villageGeoJSON = villageGeoJSONs[villageCode];
+  if (villageGeoJSON) {
+    const bounds = L.geoJSON(villageGeoJSON).getBounds();
+    map.fitBounds(bounds, { padding: [50, 50] });
+  } else {
+    console.warn(`GeoJSON data not found for village code: ${villageCode}`);
+  }
+}  
+
+function addLegend(map) {
+  const legend = L.control({position: 'topright'});
+  
+  legend.onAdd = function (map) {
+    const div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML = `
+      <h4>Legenda</h4>
+      <div class="legend-item"><span class="legend-icon" style="background-image: url('/png/balai.png')"></span>Balai Desa</div>
+      <div class="legend-item"><span class="legend-icon" style="background-image: url('/png/kantor.png')"></span>Kantor Kecamatan</div>
+      <div class="legend-item"><span class="legend-icon" style="background-image: url('/png/koramil.png')"></span>Koramil</div>
+      <div class="legend-item"><span class="legend-icon" style="background-image: url('/png/polisi.png')"></span>Polsek</div>
+      <div class="legend-item"><span class="legend-icon" style="background-image: url('/png/puskesmas.png')"></span>Puskesmas</div>
+      <div class="legend-item"><span class="legend-icon" style="background-image: url('/png/kua.png')"></span>KUA</div>
+      <div class="legend-item"><span class="legend-icon" style="background-image: url('/png/E0A9.png')"></span>Titik Kegiatan</div>
+    `;
+    return div;
+  };
+
+  legend.addTo(map);
 }
