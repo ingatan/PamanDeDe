@@ -14,12 +14,7 @@ export function initializeMap(mapBounds) {
       attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  const adjustedBounds = [
-    [-7.831990773460, 113.36985647783], 
-    [-7.7644146298733, 113.45710425933]  
-  ];
-
-  map.fitBounds(adjustedBounds);
+  map.fitBounds(mapBounds);
 
   L.control.zoom({
       position: 'topright'
