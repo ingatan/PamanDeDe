@@ -20,6 +20,7 @@ app.use(helmet({
       connectSrc: ["'self'", 'api.example.com'], 
     },
   },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
 app.use(morgan('combined'));
 app.use(cors());
